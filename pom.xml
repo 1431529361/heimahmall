@@ -15,6 +15,9 @@
         <module>cart-service</module>
         <module>hm-api</module>
         <module>user-service</module>
+        <module>trade-service</module>
+        <module>pay-service</module>
+        <module>hm-gateway</module>
     </modules>
 
     <parent>
@@ -35,6 +38,7 @@
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <hutool.version>5.8.11</hutool.version>
         <mysql.version>8.0.23</mysql.version>
+        <seata.version>1.6.1</seata.version>
     </properties>
 
     <!-- 对依赖包进行管理 -->
@@ -55,6 +59,24 @@
                 <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!--覆盖 SCA 内置的 seata 1.5.2，适配高版本 JDK-->
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-spring-boot-starter</artifactId>
+                <version>${seata.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-all</artifactId>
+                <version>${seata.version}</version>
+                <exclusions>
+                    <!--排除传递依赖的旧版 seata-core，避免版本混用-->
+                    <exclusion>
+                        <groupId>org.apache.dubbo.extensions</groupId>
+                        <artifactId>dubbo-filter-seata</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- 数据库驱动包管理 -->
             <dependency>
