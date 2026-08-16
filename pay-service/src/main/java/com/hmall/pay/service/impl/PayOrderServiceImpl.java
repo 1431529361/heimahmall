@@ -3,8 +3,10 @@ package com.hmall.pay.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmall.api.client.PayClient;
 import com.hmall.api.client.TradeClient;
 import com.hmall.api.client.UserClient;
+import com.hmall.api.dto.OrderVO;
 import com.hmall.common.exception.BizIllegalException;
 import com.hmall.common.utils.BeanUtils;
 import com.hmall.common.utils.UserContext;
@@ -17,6 +19,8 @@ import com.hmall.pay.mapper.PayOrderMapper;
 import com.hmall.pay.service.IPayOrderService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +36,13 @@ import java.time.LocalDateTime;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> implements IPayOrderService {
 
     private final UserClient userClient;
 
     private final TradeClient tradeClient;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public String applyPayOrder(PayApplyDTO applyDTO) {
@@ -56,6 +62,11 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             // 订单不是未支付，状态异常
             throw new BizIllegalException("交易已支付或关闭！");
         }
+        //2.5检验订单是否取消
+        OrderVO order = tradeClient.queryOrderById(po.getBizOrderNo());
+        if (order == null || order.getStatus() != 1) {
+            throw new BizIllegalException("交易订单已关闭或不存在，无法支付！");
+        }
         // 3.尝试扣减余额
         userClient.deductMoney(payOrderFormDTO.getPw(), po.getAmount());
         // 4.修改支付单状态
@@ -64,7 +75,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             throw new BizIllegalException("交易已支付或关闭！");
         }
         // 5.修改订单状态
-        tradeClient.markOrderPaySuccess(po.getBizOrderNo());
+        //tradeClient.markOrderPaySuccess(po.getBizOrderNo());
+        try {
+            rabbitTemplate.convertAndSend("pay.direct", "pay.success", po.getBizOrderNo());
+            log.info("消息发送成功，支付单id：{}， 订单id：{}", po.getId(), po.getBizOrderNo());
+        } catch (Exception e){
+            log.error("支付成功的消息发送失败，支付单id：{}， 交易单id：{}", po.getId(), po.getBizOrderNo(), e);
+        }
     }
 
     public boolean markPayOrderSuccess(Long id, LocalDateTime successTime) {

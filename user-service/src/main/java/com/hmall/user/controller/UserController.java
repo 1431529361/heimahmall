@@ -35,5 +35,11 @@ public class UserController {
     public void deductMoney(@RequestParam("pw") String pw,@RequestParam("amount") Integer amount){
         userService.deductMoney(pw, amount);
     }
+    @ApiOperation("退款")
+    @ApiImplicitParam(name = "amount", value = "退款金额")
+    @PutMapping("/money/refund")
+    public void refundMoney(@RequestParam("amount") Integer amount){
+        userService.refundMoney(amount);
+    }
 }
 

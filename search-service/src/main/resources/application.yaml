@@ -1,0 +1,13 @@
+server:
+  port: 8087
+feign:
+  okhttp:
+    enabled: true # 开启OKHttp连接池支持
+  sentinel:
+    enabled: true # 开启Feign对Sentinel的整合
+hm:
+  swagger:
+    title: 商品搜索服务接口文档
+    package: com.hmall.search.controller
+  es:
+    host: http://192.168.18.132:9200

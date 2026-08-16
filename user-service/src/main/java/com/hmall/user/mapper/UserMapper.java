@@ -17,4 +17,6 @@ import org.apache.ibatis.annotations.Update;
 public interface UserMapper extends BaseMapper<User> {
     @Update("update user set balance = balance - ${totalFee} where id = #{userId} and balance >= #{totalFee}")
     int updateMoney(@Param("userId") Long userId, @Param("totalFee") Integer totalFee);
+    @Update("update user set balance = balance + ${amount} where id = #{userId} ")
+    int refundMoney(@Param("userId") Long userId, @Param("amount") Integer amount);
 }

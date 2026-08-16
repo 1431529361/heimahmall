@@ -84,4 +84,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         log.info("扣款成功");
     }
+
+    @Override
+    public void refundMoney(Integer amount) {
+        log.info("开始退款");
+        Long userId = UserContext.getUser();
+        if (userId == null) {
+            throw new BizIllegalException("退款失败：用户信息缺失");
+        }
+
+        // 1.尝试退款
+
+        int count = baseMapper.refundMoney(userId, amount);
+        if (count < 1){
+            throw new BizIllegalException("退款失败");
+        }
+
+        log.info("退款成功");
+    }
 }

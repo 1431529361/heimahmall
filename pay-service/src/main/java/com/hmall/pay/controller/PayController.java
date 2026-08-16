@@ -5,7 +5,9 @@ import com.hmall.common.exception.BizIllegalException;
 import com.hmall.common.utils.BeanUtils;
 import com.hmall.pay.domain.dto.PayApplyDTO;
 import com.hmall.pay.domain.dto.PayOrderFormDTO;
+import com.hmall.pay.domain.po.PayOrder;
 import com.hmall.pay.domain.vo.PayOrderVO;
+import com.hmall.pay.enums.PayStatus;
 import com.hmall.pay.enums.PayType;
 import com.hmall.pay.service.IPayOrderService;
 import io.swagger.annotations.Api;
@@ -14,6 +16,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Api(tags = "支付相关接口")
@@ -46,4 +49,25 @@ public class PayController {
     public List<PayOrderVO> queryPayOrders(){
         return BeanUtils.copyList(payOrderService.list(), PayOrderVO.class);
     }
+    @ApiOperation("根据业务订单id查询支付单")
+    @ApiImplicitParam(value = "业务订单id", name = "id")
+    @GetMapping("/{id}")
+    public PayOrderVO queryPayOrderById(@PathVariable("id") Long id){
+        PayOrder payOrder = payOrderService.lambdaQuery()
+                .eq(PayOrder::getBizOrderNo, id)
+                .one();
+        return BeanUtils.copyBean(payOrder, PayOrderVO.class);
+    }
+    @ApiOperation("关闭支付单")
+    @ApiImplicitParam(value = "订单id", name = "id")
+    @PostMapping("/{id}/close")
+    public void closePayOrder(@PathVariable("id") Long id){
+        payOrderService.lambdaUpdate()
+                .set(PayOrder::getStatus, PayStatus.TRADE_CLOSED.getValue())
+                .set(PayOrder::getPayOverTime, LocalDateTime.now())
+                .eq(PayOrder::getBizOrderNo, id)
+                .eq(PayOrder::getStatus, PayStatus.WAIT_BUYER_PAY.getValue())
+                .update();
+    }
+
 }

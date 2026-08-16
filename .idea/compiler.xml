@@ -10,6 +10,7 @@
         <module name="pay-service" />
         <module name="hm-gateway" />
         <module name="trade-service" />
+        <module name="search-service" />
         <module name="hm-common" />
         <module name="item-service" />
         <module name="user-service" />
@@ -27,6 +28,7 @@
       <module name="hm-service" options="-parameters" />
       <module name="item-service" options="-parameters" />
       <module name="pay-service" options="-parameters" />
+      <module name="search-service" options="-parameters" />
       <module name="trade-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>

@@ -1,6 +1,7 @@
 package com.hmall.api.client.fallback;
 
 import com.hmall.api.client.ItemClient;
+import com.hmall.api.dto.Item;
 import com.hmall.api.dto.ItemDTO;
 import com.hmall.api.dto.OrderDetailDTO;
 import com.hmall.common.exception.BizIllegalException;
@@ -26,6 +27,17 @@ public class ItemClientFallback implements FallbackFactory<ItemClient> {
             public void deductStock(List<OrderDetailDTO> items) {
                 throw new BizIllegalException(cause);
 
+            }
+
+            @Override
+            public void restoreStock(List<OrderDetailDTO> items) {
+                throw new BizIllegalException(cause);
+            }
+
+            @Override
+            public Item queryItemyById(Long id) {
+                log.error("远程调用ItemClient#queryItemyById方法出现异常，参数：{}", id, cause);
+                return null;
             }
         };
     }

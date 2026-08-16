@@ -14,6 +14,12 @@ public class UserClientFallback implements FallbackFactory<UserClient> {
                 log.error("远程调用UserClient#deductMoney方法出现异常，参数：{}", amount, cause);
                 throw new BizIllegalException(cause);
             }
+
+            @Override
+            public void refundMoney(Integer amount) {
+                log.error("远程调用refundMoney方法出现异常，参数：{}", amount, cause);
+                throw new BizIllegalException(cause);
+            }
         };
     }
 }
